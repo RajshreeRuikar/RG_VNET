@@ -1,23 +1,56 @@
-# Starter pipeline
-# Start with a minimal pipeline that you can customize to build and deploy your code.
-# Add steps that build, run tests, deploy, and more:
-# https://aka.ms/yaml
-
 trigger:
-- main
+  branches:
+    include:
+      - main  # Or your preferred branch
 
 pool:
-  vmImage: ubuntu-latest
+  vmImage: 'ubuntu-latest'
+
+variables:
+  azureSubscription: 'your-azure-subscription'
+  terraformWorkingDirectory: '$(Build.SourcesDirectory)'  # Path to the Terraform directory
+  terraformVersion: '1.3.0'  # Adjust the version as needed
 
 steps:
-- script: echo Hello, world!
-  displayName: 'Run a one-line script'
+- task: UseTerraform@0
+  inputs:
+    terraformVersion: $(terraformVersion)
 
-- script: |
-    echo Add other tasks to build, test, and deploy your project.
-    echo See https://aka.ms/yaml
-  displayName: 'Run a multi-line script'
+- task: AzureCLI@2
+  displayName: 'Authenticate with Azure'
+  inputs:
+    azureSubscription: $(azureSubscription)
+    scriptType: 'bash'
+    scriptLocation: 'inlineScript'
+    inlineScript: |
+      echo "Logging into Azure..."
+      az account set --subscription $(azureSubscription)
 
+- task: TerraformInstaller@0
+  inputs:
+    terraformVersion: $(terraformVersion)
 
-- script: echo Hello, rajshree!
-  displayName: 'Run a one-line script'
+- task: TerraformCLI@0
+  displayName: 'Terraform Init'
+  inputs:
+    provider: 'azurerm'
+    workingDirectory: $(terraformWorkingDirectory)
+    command: 'init'
+    backendServiceArm: $(azureSubscription)
+
+- task: TerraformCLI@0
+  displayName: 'Terraform Plan'
+  inputs:
+    provider: 'azurerm'
+    workingDirectory: $(terraformWorkingDirectory)
+    command: 'plan'
+    environmentServiceName: $(azureSubscription)
+
+- task: TerraformCLI@0
+  displayName: 'Terraform Apply'
+  inputs:
+    provider: 'azurerm'
+    workingDirectory: $(terraformWorkingDirectory)
+    command: 'apply'
+    args: '-auto-approve'
+    environmentServiceName: $(azureSubscription)
