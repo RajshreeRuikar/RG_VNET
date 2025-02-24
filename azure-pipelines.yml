@@ -19,7 +19,7 @@ steps:
 - task: AzureCLI@2
   displayName: 'Authenticate with Azure'
   inputs:
-    azureSubscription: $(azureSubscription)
+    azureSubscription: 'Free Trial(1)(5e2e1ba7-230d-426c-825e-4960c1286510)'
     scriptType: 'bash'
     scriptLocation: 'inlineScript'
     inlineScript: |
@@ -28,7 +28,7 @@ steps:
 
 - task: TerraformInstaller@0
   inputs:
-    terraformVersion: $(terraformVersion)
+    terraformVersion: '$(terraformVersion)'
 
 - task: TerraformCLI@0
   displayName: 'Terraform Init'
